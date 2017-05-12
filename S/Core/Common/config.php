@@ -32,6 +32,15 @@ return array(
         'db_charset' => 'utf8'
     ],
 
+  /*模版路径配置*/
+  'template'=>[
+       'default'=>['Application/','/View/','/'],//以数组形式，每个值中间用模块名，控制器类名填充
+  ],
+  'cache'=>[  //缓存配置
+      'path'=>  'Cache/',   //缓存目录
+      'encryption'=>'md5',   //缓存文件默认命名方式
+      'time'=>30          //缓存时间,默认是30s
+  ],
   'session' => true,
 );
 
