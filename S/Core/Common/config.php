@@ -39,7 +39,7 @@ return array(
   'cache'=>[  //缓存配置
       'path'=>  'Cache/',   //缓存目录
       'encryption'=>'md5',   //缓存文件默认命名方式
-      'time'=>30          //缓存时间,默认是30s
+      'time'=>3          //缓存时间,默认是30s
   ],
   'session' => true,
 );

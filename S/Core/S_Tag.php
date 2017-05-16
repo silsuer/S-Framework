@@ -35,14 +35,14 @@ class S_Tag
 
         $parseResult = [];  //结果数组
         foreach ($mattches as $k => $v){
-            $parseResult[$v] = $this->parseTag($v);
+            $parseResult[$k] = $this->parseTag($v);
         }
         return $parseResult;
     }
 
     public function parseTag($str){
-
-        $s = ""; //要返回的字符串，默认是空
+        $code = "";//要返回的字符串，默认是空
+        $s = "";
         $s = substr($str,0,strlen($str)-1);
         $s = substr($s,3);
         $a = explode(' ',$s);
@@ -52,13 +52,60 @@ class S_Tag
         }else{
             $t = $a;
         }
+
+
         //此时$t可能是标签名，或者是闭合标签
         if(isset($this->tagList[$t])){  //如果在标签列表中存在这个标签，就调用，否则就抛出提示信息
-           echo $this->tagList[$t];
+           $code = $this->{$this->tagList[$t]}($str);
+        }else if(substr($t,0,1)=="$"){
+            $t = trim($t,"$");//去掉开始的$符号
+            //代表是变量$v.id
+            if(strpos($t,'.')){ //如果包含小数点，证明这是二维数组，否则是一位数组，直接打印就可以
+
+                $tarr = explode('.',$t);
+                $code =  "<?php echo $".$tarr[0]."[" . $tarr[1] . "] ?>";
+            }else{
+                $code = "<?php echo $".$t." ?>";
+            }
+
         }else{
             throw new S_Exception("使用了错误的标签 ".$t.",该标签可能未注册！");
         }
-        //echo $s;
-       // dump($a);
+        return $code;
+    }
+
+    private function foreachStart($str){
+        //echo $str;
+        $s = substr($str,0,strlen($str)-1);
+        $s = substr($s,3+strlen("foreach"));
+        $arr = explode(' ',trim($s)); //以空格分割数组
+        $parms = [];
+        //遍历数组，以等号分割参数
+
+        foreach ($arr as $v){
+
+            $parm = explode('=',$v);
+            $parms[$parm[0]] = $parm[1];
+        }
+
+        $code = "";
+        $code .="<?php ";
+        $code .="foreach($".trim($parms['name'],'\'') . " as ";
+        $code .= isset($parms['key']) ? "$".trim($parms['key'],'\'')."=>" : "";
+        $code .= "$".trim($parms['item'],'\'') . " ){";
+        $code .="?>";
+        //echo $code;die();
+        return $code;
+    }
+
+    private function foreachEnd($str){
+        $code = "<?php } ?>";
+        return $code;
+    }
+    private function ifStart($str){
+        echo 111;
+    }
+    private function ifEnd($str){
+        echo 111;
     }
 }

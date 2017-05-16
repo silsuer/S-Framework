@@ -6,7 +6,9 @@
  * Time: 12:42
  */
 namespace Home;
-class CommonController{
+use S\Controller;
+
+class CommonController extends Controller {
 
 
 
