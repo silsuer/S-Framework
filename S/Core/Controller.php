@@ -46,39 +46,41 @@ class Controller
         $cacheCfg = C('cache');
         $p = $path;
         $class = $this->getCallInfo();  //获取模块名和控制器名
+        $encry_p = $cacheCfg['encryption']($p).'.html';  //获取加密后的缓存文件,默认是md5加密
+        $requirePath =$cacheCfg['path'].$class[0].'/'.$class[1] . '/' . $encry_p;//拼接出缓存文件地址
+
         /*判断是否是调试模式*/
-        if(!APP_DEBUG==true){
-            //是调试模式，就不缓存
+        if(APP_DEBUG==true){
+            //是调试模式，就不缓存（不判断缓存创建时间，直接覆盖原来的缓存文件）
             $content = file_get_contents(S_PATH . $path); //获取所有模版文件中所有内容
             //这里进行正则解析
-            $content = $this->parseMattches($content);
-
-            dump($content);  //输出解析后的网页
+            $contents = $this->parseMattches($content);
+            try{
+                $createFileName=$cacheCfg['path'].$class[0].'/'.$class[1];  //创建文件
+                if (!file_exists($createFileName)){
+                    $this->mkdirs($createFileName);
+                }
+                $createFileName .= '/'.$encry_p;
+                $fp = fopen($createFileName,'w');
+                fwrite($fp,$contents);
+                fclose($fp);
+            }catch (S_Exception $e){
+                throw new S_Exception('写入缓存时失败！');
+            }
+            $this->includeFile($requirePath);
         }else{
             //不是调试模式，进行缓存
-            $encry_p = $cacheCfg['encryption']($p).'.html';  //获取加密后的缓存文件
-            $requirePath =$cacheCfg['path'].$class[0].'/'.$class[1] . '/' . $encry_p;//拼接出缓存文件地址
-
             //判断这个缓存文件是否存在&&是否没有超过缓存时间
             if(file_exists(S_PATH . $requirePath)&&((time()-filemtime( S_PATH .$requirePath))<$cacheCfg['time'])){
                 //这里直接把对应的缓存文件require进来
                 $this->includeFile($requirePath);
-
             }else{
-                //dump($this->arr);
                 //这里重新创建缓存文件
-
-                ob_start();
                 $content = file_get_contents(S_PATH . $path); //获取所有模版文件中所有内容
-                //dump(html_entity_decode($content));
-                //这里把内容正则解析完成之后再次写入缓冲区
-                $content = $this->parseMattches($content);
-                //dump($content);  //写入缓冲区
-                echo $content;
-                $contents = ob_get_contents();
-                ob_end_clean();
+                //这里把内容正则解析完成，准备写入缓存文件
+                $contents = $this->parseMattches($content);
                 try{
-                    $createFileName=$cacheCfg['path'].$class[0].'/'.$class[1];
+                    $createFileName=$cacheCfg['path'].$class[0].'/'.$class[1];  //创建文件
                     if (!file_exists($createFileName)){
                         $this->mkdirs($createFileName);
                     }
@@ -89,6 +91,9 @@ class Controller
                 }catch (S_Exception $e){
                     throw new S_Exception('写入缓存时失败！');
                 }
+
+                //引入缓存文件
+                $this->includeFile($requirePath);
             }
         }
     }
@@ -139,18 +144,14 @@ class Controller
         $mattches = [];  //搜索结果
         $parseTag = [];  //经过标签解析函数解析过的数据数组
         $con = serialize($this->arr);
-        $c = "<?php $"."arr = unserialize('".$con ."');
-              foreach(\$arr as \$k => \$v){
-               $"."\$k=\$v;"." 
-               } ?>";
+        $c = "<?php $"."arr = unserialize('".$con ."'); foreach(\$arr as \$k => \$v){\$"."\$k=\$v;"." } ?>";
+
         $patter = '/(\{S\:).*\}/';  //正则匹配字符串，匹配形如{S:foreach name='data' item='v'}的字符
         preg_match_all($patter,$content,$mattches);
         //dump($mattches[0]); //对结果排序使 $matches[0] 为全部模式匹配的数组，$matches[1] 为第一个括号中的子模式所匹配的字符串组成的数组，以此类推。
         //str_replace(array,new_array,subject) 可以进行批量替换
         $tag = new S_Tag();
         $parseTag = $tag->parse($mattches[0]);//对解析出来的正则进行再次解析，解析成php代码
-       // echo "<hr>";
-        //dump($parseTag);
         $content = str_replace($mattches[0],$parseTag,$content);
         $content =$c . $content ;
         return $content;

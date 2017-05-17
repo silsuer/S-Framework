@@ -6,10 +6,10 @@
 </head>
 <body>
 <h1>asdasdad</h1>
-{S:foreach name='data' item='v'}
-hello world
-{S:$v}
-{S:/foreach}
 
+{S:if ($d > 2)}大于2
+{S:elseif ($d < 2)}等于2
+{S:else}小于2
+{S:/if}
 </body>
 </html>

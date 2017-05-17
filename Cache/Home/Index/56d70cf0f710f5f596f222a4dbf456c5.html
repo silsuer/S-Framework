@@ -1,7 +1,4 @@
-<?php $arr = unserialize('a:1:{s:4:"data";a:3:{i:0;s:3:"asd";i:1;s:3:"dfg";i:2;s:6:"sdfsdf";}}');
-              foreach($arr as $k => $v){
-               $$k=$v; 
-               } ?><!DOCTYPE html>
+<?php $arr = unserialize('a:2:{s:4:"data";a:3:{i:0;s:3:"asd";i:1;s:3:"dfg";i:2;s:6:"sdfsdf";}s:1:"d";i:3;}'); foreach($arr as $k => $v){$$k=$v; } ?><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,10 +6,10 @@
 </head>
 <body>
 <h1>asdasdad</h1>
-<?php foreach($data as $v ){?>
-hello world
-<?php echo $v ?>
-<?php } ?>
 
+<?php if($d > 2){ echo "大于2
+";}elseif($d < 2){ echo "等于2
+";} else{ echo "小于2
+";}?>
 </body>
 </html>

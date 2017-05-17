@@ -21,13 +21,13 @@ class S_Tag
    //标签列表
     private $tagList = array(
         "php" => "phpStart",
-        "PHP" => "phpStart",
-        "/php"=>"phpEnd",
-        "/PHP" => "phpEnd",
+        "/php"=>"CommonEnd",
         "foreach" =>"foreachStart",
-        "/foreach" =>"foreachEnd",
+        "/foreach" =>"CommonEnd",
         "if"=>"ifStart",
-        "/if"=>"ifEnd"
+        "/if"=>"ifEnd",
+        "elseif"=>"elseifStart",
+        "else"=>"elseStart"
     );
     //检测标签是否存在
     //标签解析
@@ -52,8 +52,6 @@ class S_Tag
         }else{
             $t = $a;
         }
-
-
         //此时$t可能是标签名，或者是闭合标签
         if(isset($this->tagList[$t])){  //如果在标签列表中存在这个标签，就调用，否则就抛出提示信息
            $code = $this->{$this->tagList[$t]}($str);
@@ -81,13 +79,11 @@ class S_Tag
         $arr = explode(' ',trim($s)); //以空格分割数组
         $parms = [];
         //遍历数组，以等号分割参数
-
         foreach ($arr as $v){
 
             $parm = explode('=',$v);
             $parms[$parm[0]] = $parm[1];
         }
-
         $code = "";
         $code .="<?php ";
         $code .="foreach($".trim($parms['name'],'\'') . " as ";
@@ -98,14 +94,64 @@ class S_Tag
         return $code;
     }
 
-    private function foreachEnd($str){
+    private function CommonEnd($str){
         $code = "<?php } ?>";
         return $code;
     }
+
+
+
     private function ifStart($str){
-        echo 111;
+     /*
+      *  {S:if ($d > 2)}大于2
+         {S:elseif ($d == 2)}等于2
+         {S:else}小于2
+         {S:/if}
+      * */
+       /*
+        * if($a>2){
+        * echo "大于2";
+        * }else if($a==2){
+        * echo "等于2";
+        * }else{
+        * echo "小于2";
+        * }*/
+
+        $s = substr($str,0,strlen($str)-1);
+        $s = substr($s,3+strlen("if"));  //去掉了前后标签
+        //判断是否是被（）包裹起来的，如果是的话，就把整体放入if的空格里
+        $code = "";
+        if((substr(trim($s),0,1)=="(")&&(substr(trim($s),-1)==")") ){
+            $c = substr(trim($s),1,-1);
+            $code .='<?php if(' . $c . '){ echo "';
+
+        }
+        return $code;
     }
+
+    private function elseifStart($str){
+        $s = substr($str,0,strlen($str)-1);
+        $s = substr($s,3+strlen("elseif"));  //去掉了前后标签
+        //判断是否是被（）包裹起来的，如果是的话，就把整体放入if的空格里
+        $code = "\";}";
+        if((substr(trim($s),0,1)=="(")&&(substr(trim($s),-1)==")") ){
+            $c = substr(trim($s),1,-1);
+            $code .='elseif(' . $c . '){ echo "';
+        }
+        return $code;
+    }
+
+    private function elseStart($str){
+        $s = substr($str,0,strlen($str)-1);
+        $s = substr($s,3+strlen("else"));  //去掉了前后标签
+        //判断是否是被（）包裹起来的，如果是的话，就把整体放入if的空格里
+        $code = "\";}";
+        $code .=' else{ echo "';
+
+        return $code;
+    }
+
     private function ifEnd($str){
-        echo 111;
+        return "\";}?>";
     }
 }
