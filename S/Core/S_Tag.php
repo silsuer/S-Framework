@@ -18,7 +18,9 @@ namespace S;
 
 class S_Tag
 {
-   //标签列表
+    private $class = []; //当前调用这个类的模块名和控制器名
+    private  $patter = '/(\{S\:).*\}/';  //正则解析字符串
+    //标签列表
     private $tagList = array(
         "php" => "phpStart",
         "/php"=>"CommonEnd",
@@ -27,8 +29,24 @@ class S_Tag
         "if"=>"ifStart",
         "/if"=>"ifEnd",
         "elseif"=>"elseifStart",
-        "else"=>"elseStart"
+        "else"=>"elseStart",
+        "switch"=>"switchStart",
+        "case"=>"caseStart",
+        "default"=>"defaultStart",
+        "/switch"=>"switchEnd",
+        "/case"=>"caseEnd",//default和case结束标签的php语句是一样的，所以调用同一个函数
+        "/default"=>"caseEnd",
+        "include"=>"includeStart",
+        "url"=>"urlStart"
     );
+
+
+    /*
+     * 构造方法，用来给$class赋值
+     */
+    function __construct($arr){
+        $this->class = $arr;
+    }
     //检测标签是否存在
     //标签解析
     public function parse($mattches){  //标签解析函数，传入一个数组，遍历数组分别解析
@@ -142,9 +160,9 @@ class S_Tag
     }
 
     private function elseStart($str){
-        $s = substr($str,0,strlen($str)-1);
-        $s = substr($s,3+strlen("else"));  //去掉了前后标签
-        //判断是否是被（）包裹起来的，如果是的话，就把整体放入if的空格里
+      //  $s = substr($str,0,strlen($str)-1);
+        //$s = substr($s,3+strlen("else"));  //去掉了前后标签
+
         $code = "\";}";
         $code .=' else{ echo "';
 
@@ -154,4 +172,134 @@ class S_Tag
     private function ifEnd($str){
         return "\";}?>";
     }
+
+    private function switchStart($str){
+
+       /** switch ($a){
+            case 1:
+                echo "这是1";
+                break;
+            case 2:
+                echo "这是2";
+                break;
+            case 3:
+                echo "这是3";
+                break;
+            default:
+                echo "并没有";
+                break;
+        }**/
+        $parms = $this->setParms($str,"switch");
+        $code="";
+        $code .="<?php switch(\$$parms[name]){";
+        return $code;
+    }
+    private function caseStart($str){
+        $parms = $this->setParms($str,"case");
+        $code="";
+        $code .=" case \"$parms[value]\": echo '";
+        return $code;
+    }
+    private function caseEnd($str){
+        $code="";
+        $code .="'; break; ";
+        return $code;
+    }
+    private function defaultStart($str){
+        $code="";
+        $code .=" default: echo '";
+        return $code;
+    }
+    private function switchEnd($str){
+        $code=" } ?>";
+        return $code;
+    }
+
+    private function includeStart($str){
+        $parms = $this->setParms($str,'include');
+        $tempCfg = C('template'); //获取模版路径配置
+         $path = ''; //要引入的模版路径
+        // $p = $tempCfg[0].$class[0].$tempCfg['default'][1].$class[1].$tempCfg['default'][2].$path;
+        //判断是绝对路径还是相对路径
+        if(strstr($parms['file'],'\\')){  //路径中含有\ 证明是模块，控制器，方法，文件名；
+             $m = explode('\\',$parms['file']); //把路径拆分
+             if(count($m)!=3){ //判断是否是由四部分组成
+                 throw new S_Exception("{include}标签包含的文件路径不正确，请使用： 模块名\\控制器名\\文件名");
+             }
+             //根据路径，拼接出真实路径
+
+            $cfg = [];
+            if(isset($tempCfg[$m[0]])){
+                $cfg = $tempCfg[$m[0]];
+            }else{
+                $cfg = $tempCfg['default'];
+            }
+            $path = S_PATH.$cfg[0].$m[0].$cfg[1].$m[1].$cfg[2].$m[2].'.html';
+        }elseif(strstr($parms['file'],'/')){  //路径中含有/  证明是绝对路径，直接引入处理就可以
+            $parms['file'] = trim($parms['file'],'/'); //把两侧的/去掉，这样可以放心的使用S_PATH连接
+            $path = S_PATH . $parms['file'].'.html';
+        }else{ //路径只有一个文件名，就在当前的模块和控制器下进行包含
+            $cfg = [];
+            if(isset($tempCfg[$this->class[0]])){
+                $cfg = $tempCfg[$this->class[0]];
+            }else{
+                $cfg = $tempCfg['default'];
+            }
+            $path = S_PATH.$cfg[0].$this->class[0].$cfg[1].$this->class[1].$cfg[2].$parms['file'].'.html';
+        }
+        //开始引入
+        if (file_exists($path)){
+            $content = file_get_contents($path); //获取到文件内容后进行解析
+            preg_match_all($this->patter,$content,$mattches);
+            $parseTag = $this->parse($mattches[0]);
+            $content = str_replace($mattches[0],$parseTag,$content);
+            return $content;
+        }
+    }
+
+    private function urlStart($str){
+        $parms = $this->setParms($str,'url');
+        $mapCfg = C('namespace_map_list');
+        $link = $parms['link'];
+        unset($parms['link']);
+
+        $path = "";
+        if(strstr($link,'\\')){  //路径中含有\ 证明是模块，控制器，方法，文件名；
+            $m = explode('\\',$link); //把路径拆分
+            if(count($m)!=3){ //判断是否是由三部分组成
+                throw new S_Exception("{url}标签包含的文件路径不正确，请使用： 模块名\\控制器名\\方法名");
+            }
+            $cfg = [];
+            if (isset($mapCfg[$m[0]])){
+                $cfg = $mapCfg[$m[0]];
+            }else{
+                $cfg = $mapCfg['default'];
+            }
+
+            $path = __ROOT__.'index.php/'.$m[0].'/'.$m[1].'/'.$m[2];
+        }else{ //路径只有一个文件名，就在当前的模块和控制器下进行包含
+               $path = __ROOT__.'index.php/'.$this->class[0].'/'.$this->class[1].'/'.$link;
+        }
+
+        //开始加入参数
+        foreach ($parms as $k=>$v){
+            $path .= '/'.$k.'/'.$v;
+        }
+        return $path;
+    }
+
+    private function setParms($str,$tag){
+        $s = substr($str,0,strlen($str)-1);
+        $s = substr($s,3+strlen($tag));  //去掉了前后标签
+        $arr = explode(' ',trim($s)); //以空格分割数组
+        $parms = [];
+        //遍历数组，以等号分割参数
+        foreach ($arr as $v){
+
+            $parm = explode('=',$v);
+            $parms[$parm[0]] = trim($parm[1],'\'');
+        }
+        return $parms;
+    }
+
 }

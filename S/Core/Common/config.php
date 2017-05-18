@@ -4,10 +4,12 @@ return array(
     'password' =>'asdasd',
     'default_charset'=>'UTF-8',
     'default_timezone'=>'PRC',
+
     'namespace_map_list' => [
         'S' => S_PATH . 'S/core',
         'Home'    => S_PATH . 'Application/Home/Controller',
         //'test' => ROOT_PATH.'test',
+        'default'=>S_PATH.'Application/default/Controller'
     ],
 
     'extend_path' => S_PATH . 'S/Extend/',

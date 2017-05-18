@@ -6,10 +6,28 @@
 </head>
 <body>
 <h1>asdasdad</h1>
-
+{S:include file='Home\Index\req'}
+{S:include file='/Application/Home/View/Index/req'}
+{S:include file='req'}
 {S:if ($d > 2)}大于2
 {S:elseif ($d < 2)}等于2
 {S:else}小于2
 {S:/if}
+{S:$d}
+{S:switch name='d'}
+{S:case value=1}
+这是1
+{S:/case}
+{S:case value=2}
+这是2
+{S:/case}
+{S:case value=3}
+这是3
+{S:/case}
+{S:default}
+都不是
+{S:/default}
+{S:/switch}
+<a href="{S:url link='dd' id='5' se='dssd'}">dddd</a>
 </body>
 </html>

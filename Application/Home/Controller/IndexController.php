@@ -10,4 +10,10 @@ class IndexController extends Controller {
    
       $this->display("index.html");
   }
+
+  public function dd(){
+      $this->a = I('id');
+      $this->b = I('se');
+      $this->display('select.html');
+  }
 }

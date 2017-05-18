@@ -150,7 +150,7 @@ class Controller
         preg_match_all($patter,$content,$mattches);
         //dump($mattches[0]); //对结果排序使 $matches[0] 为全部模式匹配的数组，$matches[1] 为第一个括号中的子模式所匹配的字符串组成的数组，以此类推。
         //str_replace(array,new_array,subject) 可以进行批量替换
-        $tag = new S_Tag();
+        $tag = new S_Tag($this->getCallInfo()); //传入当前的模块名称，控制器名
         $parseTag = $tag->parse($mattches[0]);//对解析出来的正则进行再次解析，解析成php代码
         $content = str_replace($mattches[0],$parseTag,$content);
         $content =$c . $content ;
