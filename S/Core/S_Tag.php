@@ -141,20 +141,20 @@ class S_Tag
         $code = "";
         if((substr(trim($s),0,1)=="(")&&(substr(trim($s),-1)==")") ){
             $c = substr(trim($s),1,-1);
-            $code .='<?php if(' . $c . '){ echo "';
-
+            $code .='<?php if(' . $c . '){ echo \'';
         }
         return $code;
+       /*不能连续在循环里写多个标签*/
     }
 
     private function elseifStart($str){
         $s = substr($str,0,strlen($str)-1);
         $s = substr($s,3+strlen("elseif"));  //去掉了前后标签
         //判断是否是被（）包裹起来的，如果是的话，就把整体放入if的空格里
-        $code = "\";}";
+        $code = "';}";
         if((substr(trim($s),0,1)=="(")&&(substr(trim($s),-1)==")") ){
             $c = substr(trim($s),1,-1);
-            $code .='elseif(' . $c . '){ echo "';
+            $code .='elseif(' . $c . '){ echo \'';
         }
         return $code;
     }
@@ -163,14 +163,14 @@ class S_Tag
       //  $s = substr($str,0,strlen($str)-1);
         //$s = substr($s,3+strlen("else"));  //去掉了前后标签
 
-        $code = "\";}";
-        $code .=' else{ echo "';
+        $code = "';}";
+        $code .=' else{ echo \'';
 
         return $code;
     }
 
     private function ifEnd($str){
-        return "\";}?>";
+        return "';}?>";
     }
 
     private function switchStart($str){

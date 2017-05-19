@@ -76,7 +76,21 @@ function import($str){
     }
 }
 
+function lib($str){
+    //这个方法和import类似，用于导入系统内置的类
+    $path = S_PATH . 'S/lib/'.$str.'.php';
+    if (file_exists($path)){
+        require $path;
+        return true;
+    }else{
+        throw new \S\S_Exception("您要导入的内置类不存在！");
+    }
+}
 
+function error($str="出错了！",$time=5){
+    //提示错误信息，跳转时间
+
+}
 
 function session($parm1,$parm2 = null){
     if (is_null($parm2)){

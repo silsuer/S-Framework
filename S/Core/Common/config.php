@@ -12,6 +12,7 @@ return array(
         'default'=>S_PATH.'Application/default/Controller'
     ],
 
+    'upload_path'=>S_PATH .'Upload/',  //默认上传目录
     'extend_path' => S_PATH . 'S/Extend/',
 
     'url_mode'=>2,   //URL模式

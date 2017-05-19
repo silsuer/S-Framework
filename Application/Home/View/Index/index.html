@@ -28,6 +28,19 @@
 都不是
 {S:/default}
 {S:/switch}
-<a href="{S:url link='dd' id='5' se='dssd'}">dddd</a>
+<a href="{S:url link='dd' id='5' se='dssd'}">dddd</a><br>
+{S:foreach name='data' item='v'}
+{S:if ($v=='fg')}这是aaaa
+{S:/if}
+{S:if ($v=='asd'}这是asd
+{S:/if}
+{S:/foreach}
+
+{S:if ($data[0]=='asd')}
+data0是asd
+{S:/if}
+{S:if ($data[1]=='asd')}
+data1是asd
+{S:/if}
 </body>
 </html>

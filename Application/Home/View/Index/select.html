@@ -7,5 +7,12 @@
 <body>
 <h1>这是select页面</h1>
 <h2>{S:$b}</h2>
+<h3>文件上传下载类</h3>
+<form enctype="multipart/form-data" method="post" action="{S:url link='Home\Index\ddaction'}">
+<input type="file" name="photo[]" value="">
+    <input type="file" name="photo[]" value="">
+    <input type="file" name="photo[]" value="">
+    <button type="submit">上传</button>
+</form>
 </body>
 </html>
