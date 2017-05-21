@@ -87,10 +87,6 @@ function lib($str){
     }
 }
 
-function error($str="出错了！",$time=5){
-    //提示错误信息，跳转时间
-
-}
 
 function session($parm1,$parm2 = null){
     if (is_null($parm2)){
@@ -106,7 +102,10 @@ function session($parm1,$parm2 = null){
     }
 }
 function redirect($url, $time=0, $msg='') {
-    $url = __ROOT__.$url;
+    if ($url!=$_SERVER['HTTP_REFERER']){
+        $url = __ROOT__.$url;
+    }
+
     if (empty($msg)){
         $msg    = "系统将在{$time}秒之后自动跳转到{$url}！";
     }
@@ -127,15 +126,17 @@ function redirect($url, $time=0, $msg='') {
     }
 }
 
-//smarty中注册的函数，用于在模板中进行跳转
-function url($args){
-    if (isset($args['k'])&&isset($args['v'])){
-        $path =  '/' . $args['k'] . '/'  .$args['v'];
-        echo __ROOT__ . 'index.php/' .$args['m'] . '/' . $args['c'] . '/' . $args['a'] . $path;
-//
-    }else{
-        echo __ROOT__. 'index.php/' . $args['m'] . '/' . $args['c'] . '/' . $args['a'] ;
-    }
+
+function error($str="出错了！",$time=5,$url=null){
+    $url = getURL();
+    //提示错误信息，跳转时间
+    echo "<script>alert('$str');history.go(-1);</script>";
+
+}
+
+function success($msg=null,$url=null,$time=5){
+//    dump($_SERVER['HTTP_REFERER']);
+    redirect($_SERVER['HTTP_REFERER'],$time,$msg);
 }
 
 function isAjax(){
